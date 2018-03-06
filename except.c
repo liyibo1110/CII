@@ -1,9 +1,12 @@
 #include "except.h"
+#include "assert.h"
 #include <stdio.h>
 #include <stdlib.h>
 
+Except_Frame *exceptStack = NULL;
 void exceptRaise(const Except_T *e, const char *file, int line){
     Except_Frame *p = exceptStack;
+    assert(e);
     if(p == NULL){  //整个异常栈到头了，只能关闭退出
         //各种打印
         fprintf(stderr, "Uncaught exception");

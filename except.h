@@ -7,7 +7,8 @@
     typedef struct Except_T{
         char *reason;
     } Except_T;
-
+    
+    typedef struct Except_Frame Except_Frame;
     struct Except_Frame{
         Except_Frame *prev;
         jmp_buf env;
@@ -15,7 +16,6 @@
         int line;
         const Except_T *exception;
     };
-    typedef struct Except_Frame Except_Frame;
 
     enum{
         exceptEntered = 0,  //迎合setjmp第一次调用的返回值（也为0）
@@ -26,6 +26,9 @@
 
     //全局变量，代表当前栈顶部的异常帧
     extern Except_Frame *exceptStack;
+    //引用c文件里的断言异常
+    extern const Except_T Assert_Failed;
+
     //函数
     void exceptRaise(const Except_T *e, const char *file, int line);
     //宏
