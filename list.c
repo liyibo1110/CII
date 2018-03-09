@@ -2,6 +2,9 @@
 #include "assert.h"
 #include "mem.h"
 #include <stdarg.h>
+#include <stdio.h>
+
+
 
 List listList(void *x, ...){
     va_list ap;
@@ -14,12 +17,13 @@ List listList(void *x, ...){
         NEW(*p);    //注意要加星号，传的还是指针
         (*p)->first = x;
         p = &((*p)->rest);  //将p指向下一个元素，不一定会赋值了
-        x = va_arg(ap, void *); //将下一个参数给x
+        x = va_arg(ap, void *); //将下一个参数给x  
     }
     *p = NULL;
     va_end(ap);
+
     return list;
-}
+} 
 
 List listPush(List list, void *x){
     List l;
@@ -29,11 +33,17 @@ List listPush(List list, void *x){
     return l;
 }
 
-List listPop(List list, void *x){
+/**
+ * x参数必须是指针的指针，void *是结构体的内部元素，要当做一个整体来看待
+ * 外界需要用&x这样的实参传进来，才能把void *里的内容带回去，因此形参需要void **x
+ */ 
+List listPop(List list, void **x){
     if(list){
         List head = list->rest;
-        x = list->first;
-        FREE(list);
+        if(x){
+            *x = list->first;
+            FREE(list);
+        }
         return head;
     }else{
         return list;
@@ -94,11 +104,11 @@ void listFree(List list){
 }
 
 void listMap(List list, 
-    void *apply(void *x, void *cl), void *cl){
+    void *apply(void **x, void *cl), void *cl){
         assert(apply);
         while(list){
             //调用传入的函数指针，参数是当前遍历的first值和客户端调用传入的cl参数
-            apply(list->first, cl);
+            apply(&list->first, cl);
             list = list->rest;
         }
 }
