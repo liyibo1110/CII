@@ -17,6 +17,6 @@ int listLength(List list);
 void listFree(List list);
 void listMap(List list, 
     void *apply(void *x, void *cl), void *cl);
-void listToArray(List list, void *end);
+void **listToArray(List list, void *end);
 
 #endif

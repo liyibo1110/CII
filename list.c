@@ -62,3 +62,57 @@ List listCopy(List list){
     *p = NULL;
     return head;
 }
+
+List listReverse(List list){
+    List head = NULL;
+    List next;  //永远指向下一个，当为NULL说明遍历完了
+    while(list){
+        next = list->rest;
+        list->rest = head;  //处理新list的后续，将断开list的头元素，后续指向已逆序出来的新headlist
+        head = list;    //将新断开的头元素，放到headlist的最前面
+        list = next;
+    }
+    return head;
+}
+
+int listLength(List list){
+    int count = 0;
+    while(list){
+        count++;
+        list = list->rest;
+    }
+    return count;
+}
+
+void listFree(List list){
+    assert(list);
+    List next;
+    while(list){
+        next = list->rest;  //指名下一个元素位置，这样就可以清理首元素了
+        FREE(list);
+    }
+}
+
+void listMap(List list, 
+    void *apply(void *x, void *cl), void *cl){
+        assert(apply);
+        while(list){
+            //调用传入的函数指针，参数是当前遍历的first值和客户端调用传入的cl参数
+            apply(list->first, cl);
+            list = list->rest;
+        }
+}
+
+void **listToArray(List list, void *end){
+    int i;
+    int n = listLength(list);   //如果list为NULL则返回0
+    void **array = ALLOC((n + 1)*sizeof(array)); //分配n+1组内存，注意array是指向指针的数组
+    //开始遍历赋值
+    for(i = 0; i < n; i++){
+        array[i] = list->first;
+        list = list->rest;
+    }
+    //最后把传进来的end给数组额外的最后1组
+    array[i] = end;
+    return array;   
+}
