@@ -5,6 +5,8 @@ struct Table_T{
     int size;
     int (*cmp)(const void *x, const void *y);
     unsigned (*hash)(const void *key);
+    int length;
+    unsigned timestamp;
     struct bindings{
         struct bindings *link;
         const void *key;
