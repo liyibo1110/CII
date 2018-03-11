@@ -38,7 +38,7 @@ Table tableNew(int hint,
 }
 
 void *tableGet(Table table, const void *key){
-    struct bindings *p;
+    struct binding *p;
     assert(table);
     assert(key);
     //使用指针调用table的hash函数，然后和桶大小取模，生成桶索引
@@ -53,7 +53,7 @@ void *tableGet(Table table, const void *key){
 }
 
 void *tablePut(Table table, const void *key, void *value){
-    struct bindings *p;
+    struct binding *p;
     assert(table);
     assert(key);
     void *prev; //保存被替换之前的value
@@ -84,4 +84,72 @@ void *tablePut(Table table, const void *key, void *value){
 int tableLength(Table table){
     assert(table);
     return table->length;
+}
+
+void *tableRemove(Table table, const void *key){
+    struct binding **pp;
+    assert(table);
+    assert(key);
+    table->timestamp++;
+    //使用指针调用table的hash函数，然后和桶大小取模，生成桶索引
+    int i = (*table->hash)(key) % table->size;
+    //开始在特定桶里遍历寻找相应的key
+    for (pp = &table->buckets[i]; *pp; pp = &(*pp)->link){
+        if((*table->cmp)(key, (*pp)->key) == 0){
+            //找到则删除
+            struct binding *p = *pp;
+            void *value = p->value; //保存旧值等待返回
+            *pp = p->link;  //直接指向链表下一个节点
+            FREE(p);
+            table->length--;
+            return value;
+        }
+    }
+    return NULL;
+}
+
+void tableMap(Table table,
+              void apply(const void *key, void **value, void *cl),
+              void *cl){
+    assert(table);
+    assert(apply);
+    unsigned stamp = table->timestamp;  //暂存用来比较是否发生了变化
+    struct binding *p;
+    for(int i = 0; i < table->size; i++){
+        for(p = table->buckets[i]; p; p = p->link){
+            //调用函数指针
+            apply(p->key, &p->value, cl);
+            assert(stamp == table->timestamp);   //检查stamp是否发生了变化
+        }
+    }
+}
+
+void **tableToArray(Table table, void *end){
+    assert(table);
+    void **array = ALLOC((2 * table->length + 1) * sizeof(*array));
+    struct binding *p;
+    int j = 0;
+    for(int i = 0; i < table->size; i++){
+        for(p = table->buckets[i]; p; p = p->link){
+            array[j++] = (void *)p->key;
+            array[j++] = p->value;
+        }
+    }
+    array[j] = end;
+    return array;
+}
+
+void tableFree(Table *table){
+    assert(table);
+    assert(*table);
+    if((*table)->length > 0){
+        struct binding *p;
+        struct binding *q;
+        for(int i = 0; i < (*table)->size; i++){
+            for(p = (*table)->buckets[i]; p; p = q){
+                q = p->link;    //需要将link另存为，因为p被free了
+                FREE(p);
+            }
+        }
+    }
 }
