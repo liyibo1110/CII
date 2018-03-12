@@ -81,9 +81,9 @@ Array arrayCopy(Array array, int length){
     assert(length >= 0);
     Array copy = arrayNew(length, array->size);
     if((copy->length >= array->length) && (array->length > 0)){
-        memcpy(copy->array, array->array, array->length*array->size);
+        memcpy(copy->array, array->array, array->length*array->size);   //原书代码第3个参数竟然写错了。。。
     }else if((array->length >= copy->length) && (copy->length > 0)){
-        memcpy(copy->array, array->array, copy->length*array->size);
+        memcpy(copy->array, array->array, copy->length*array->size);    //原书代码第3个参数竟然写错了。。。
     }
     return copy;
 }
