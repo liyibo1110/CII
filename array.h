@@ -3,6 +3,12 @@
 
 typedef struct Array_T *Array;   
 
+struct Array_T{
+    int length;
+    int size;
+    char *array;
+};
+
 Array arrayNew(int length, int size);
 void arrayFree(Array *array);
 int arrayLength(Array array);

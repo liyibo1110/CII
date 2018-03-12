@@ -11,7 +11,7 @@ void memFree(void *ptr, const char *file, int line);
 void *memResize(void *ptr, long nbytes, const char *file, int line);
 
 #define ALLOC(nbytes) memAlloc((nbytes), __FILE__, __LINE__)
-#define CALLOC(count, nbytes) memAlloc((count), (nbytes), __FILE__, __LINE__)
+#define CALLOC(count, nbytes) memCalloc((count), (nbytes), __FILE__, __LINE__)
 #define NEW(p) ((p) = ALLOC((long)sizeof *(p)))
 #define NEWO(p) ((p) = CALLOC(1, (long)sizeof *(p)))
 #define FREE(ptr) ((void)memFree((ptr), __FILE__, __LINE__), (ptr) = 0)
