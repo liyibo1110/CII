@@ -2,10 +2,10 @@
 #define SET_H_
 
 struct Set_T{
-    int size;
+    int size;   //多少个桶，构建好以后就是固定不变的数目了
     int (*cmp)(const void *x, const void *y);
     unsigned (*hash)(const void *x);
-    int length;
+    int length; //多少个存储实体,新增则加1，删除则减1，会动态变化
     unsigned timestamp;
     struct member{
         struct member *link;

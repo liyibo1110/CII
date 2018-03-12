@@ -29,11 +29,12 @@ Table tableNew(int hint,
     table->size = primes[i - 1];
     table->cmp = (cmp ? cmp : cmpAtom); //传了则用，否则用默认的实现
     table->hash = (hash ? hash : hashAtom); //传了则用，否则用默认的实现
-    table->length = 0;
-    table->timestamp = 0;
+    table->buckets = (struct binding **)(table + 1);    //alloc是申请了2块，所以要把buckets人工指向
     for (int j = 0; j < table->size; j++){
         table->buckets[j] = NULL;
     }
+    table->length = 0;
+    table->timestamp = 0;
     return table;
 }
 
