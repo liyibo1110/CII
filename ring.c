@@ -29,6 +29,23 @@ int ringLength(Ring ring){
     return ring->length;
 }
 
+void ringFree(Ring *ring){
+    assert(ring);
+    assert(*ring);
+    struct node *p, *q;
+    //先释放环里的node们
+    if((p = (*ring)->head) != NULL){
+        int i = (*ring)->length;
+        while(i > 0){
+            q = p->rlink;
+            FREE(p);
+            p = q;
+            i--;
+        }
+    }
+    FREE(*ring);    //最后释放环本身
+}
+
 void *ringGet(Ring ring, int i){
     assert(ring);
     assert(i >= 0 && i < ring->length);
