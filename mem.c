@@ -1,6 +1,7 @@
 #include "mem.h"
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdio.h>
 #include "assert.h"
 #include "except.h"
 

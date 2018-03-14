@@ -4,6 +4,7 @@
 #include "mem.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 Array arrayNew(int length, int size){
     Array array;
@@ -49,7 +50,8 @@ void *arrayPut(Array array, int i, void *elem){
     assert(array);
     assert(i >= 0 && i < array->length);
     assert(elem);
-    memcpy(array->array + i * array->size, elem, array->size);
+    //memcpy(array->array + i * array->size, elem, array->size);
+    ((void **)array->array)[i] = elem;
     return elem;
 }
 
