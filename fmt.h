@@ -15,7 +15,7 @@ extern const Except_T Fmt_Overflow;
 void fmtFmt(int put(int c, void *cl), void *cl, 
                     const char *fmt, ...);
 
-void fmtFfmt(int put(int c, void *cl), void *cl, 
+void fmtVfmt(int put(int c, void *cl), void *cl, 
                     const char *fmt, va_list ap);
 
 void fmtPrint(const char *fmt, ...);
@@ -30,6 +30,7 @@ void fmtPutd(const char *str, int len,
                 int put(int c, void *cl), void *cl,
                 unsigned char flags[256], int width, int precision);
 void fmtPuts(const char *str, int len, 
-                int put(int c, void *cl), void *cl);
+                int put(int c, void *cl), void *cl,
+                unsigned char flags[256], int width, int precision);
 
 #endif
