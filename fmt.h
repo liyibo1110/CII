@@ -25,7 +25,7 @@ int fmtVsfmt(char *buf, int size, const char *fmt, va_list ap);
 char *fmtString(const char *fmt, ...);
 char *fmtVstring(const char *fmt, va_list ap);
 
-Fmt_T fmtRegister(int code, Fmt_T cvt);
+Fmt_T fmtRegister(int code, Fmt_T newcvt);
 void fmtPutd(const char *str, int len, 
                 int put(int c, void *cl), void *cl,
                 unsigned char flags[256], int width, int precision);
