@@ -8,6 +8,7 @@
 #define idx(i, len) ((i) <= 0 ? (i) + (len) : (i) - 1)
 #define isatend(s, n) ((s).str + (s).len == current->avail \
                         && current->avail + (n) <= current->limit)
+#define equal(s, i, t) (memcmp(&(s).str[i], (t).str, (t).len) == 0)
 
 static char cset[] =
 	"\000\001\002\003\004\005\006\007\010\011\012\013\014\015\016\017"
@@ -202,4 +203,309 @@ Text textDup(Text s, int n){
         p = p + s.len;
     }
     return text;
+}
+
+Text textReverse(Text s){
+    assert(s.str && s.len >= 0);
+    if(s.len == 0){
+        return Text_null;
+    }else if(s.len == 1){
+        return s;
+    }else{
+        Text text;
+        text.len = s.len;
+        char *p = alloc(s.len);
+        text.str = p;
+        //开始颠倒赋值
+        int i = s.len;
+        while(i-- > 0){
+            *p++ = s.str[i];
+        }
+        return text;
+    }
+}
+
+Text textMap(Text s, const Text *from, const Text *to){
+    assert(s.str && s.len >= 0);
+    static char map[256];
+    static int inited = 0;
+    if(from && to){
+        //初始化map
+        for(int k = 0; k < (int)sizeof(map); k++){
+            map[k] = k;
+        }
+        assert(from->len == to->len);
+        for(int k = 0; k < from->len; k++){
+            map[(unsigned char)from->str[k]] = to->str[k];
+        }
+        inited = 1;
+    }else{
+        assert(from == NULL && to == NULL);
+        //第一次调用map函数必须要传from和to参数，否则断言通不过
+        assert(inited);
+    }
+    if(s.len == 0){
+        return Text_null;
+    }else{
+        Text text;
+        text.len = s.len;
+        char *p = alloc(s.len);
+        text.str = p;
+        for(int i = 0; i < s.len; i++){
+            *p++ = map[(unsigned char)s.str[i]];
+        }   
+        return text;
+    }
+}
+
+int textCmp(Text s1, Text s2){
+    assert(s1.str && s1.len >= 0);
+    assert(s2.str && s2.len >= 0);
+    if(s1.str == s2.str){
+        return s1.len - s2.len;
+    }else if(s1.len < s2.len){
+        int cond = memcmp(s1.str, s2.str, s1.len);
+        return cond == 0 ? -1 : cond;
+    }else if(s1.len > s2.len){
+        int cond = memcmp(s1.str, s2.str, s2.len);
+        return cond == 0 ? +1 : cond;
+    }else{
+        return memcmp(s1.str, s2.str, s1.len);
+    }
+}
+
+int textChr(Text s, int i, int j, int c){
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    while(i < j){
+        if(s.str[i] == c){
+            return i + 1;   //返回位置，而不是索引
+        }
+        i++;
+    }
+    return 0;   //找不到则返回位置0
+}
+
+int textRchr(Text s, int i, int j, int c){
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    while(i < j){
+        if(s.str[--j] == c){    //不包括j本身的元素
+            return j + 1;   //返回位置，而不是索引
+        }
+    }
+    return 0;
+}
+
+/**
+ * 和textChr不同的是，这个是要匹配set的所有
+ */ 
+int textUpto(Text s, int i, int j, Text set){
+    assert(set.str && set.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    while(i < j){
+        if(memchr(set.str, s.str[i], set.len)){
+            return i + 1;
+        }
+        i++;
+    }
+    return 0;
+}
+
+int textRupto(Text s, int i, int j, Text set){
+    assert(set.str && set.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    while(i < j){
+        if(memchr(set.str, s.str[--j], set.len)){
+            return j + 1;
+        }
+    }
+    return 0;
+}
+
+int textFind(Text s, int i, int j, Text str){
+    assert(str.str && str.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    if(str.len == 0){
+        return i + 1;
+    }else if(str.len == 1){
+        while(i < j){
+            if(s.str[i] == *str.str){
+                return i + 1;
+            }
+            i++;
+        }
+    }else{  //str.len如果大于1
+        while(i + str.len <= j){
+            if(equal(s, i, str)){
+                return i + 1;
+            }
+            i++;
+        }
+    }
+    return 0;
+}
+
+int textRfind(Text s, int i, int j, Text str){
+    assert(str.str && str.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    if(str.len == 0){
+        return j + 1;
+    }else if(str.len == 1){
+        while(i < j){
+            if(s.str[--j] == *str.str){
+                return j + 1;
+            }
+        }
+    }else{  //str.len如果大于1
+        while(i <= j - str.len){
+            if(equal(s, j - str.len, str)){
+                return j - str.len + 1;
+            }
+            j--;
+        }
+    }
+    return 0;
+}
+
+int textAny(Text s, int i, Text set){
+    assert(s.str && s.len >= 0);
+    assert(set.str && set.len >= 0);
+    i = idx(i, s.len);
+    assert(i >= 0 && i <= s.len);
+    if(i < s.len && memchr(set.str, s.str[i], set.len)){
+        return i + 2;
+    }
+    return 0;
+}
+
+int textMany(Text s, int i, int j, Text set){
+    assert(set.str && set.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    if(i < j && memchr(set.str, s.str[i], set.len)){
+        do{
+            i++;
+        }while(i < j && memchr(set.str, s.str[i], set.len));
+        return i + 1;
+    }
+    return 0;
+}
+
+int textRmany(Text s, int i, int j, Text set){
+    assert(set.str && set.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    if(i < j && memchr(set.str, s.str[j-1], set.len)){
+        do{
+            --j;
+        }while(i <= j && memchr(set.str, s.str[j], set.len));
+        return j + 2;
+    }
+    return 0;
+}
+
+int textMatch(Text s, int i, int j, Text str){
+    assert(str.str && str.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    if(str.len == 0){
+        return i + 1;
+    }else if(str.len == 1){
+        if(i < j && s.str[i] == *str.str){
+            return i + 2; 
+        }
+    }else if(i + str.len <= j && equal(s, i, str)){
+        return i + str.len + 1;
+    }
+    return 0;
+}
+
+int textRmatch(Text s, int i, int j, Text str){
+    assert(str.str && str.len >= 0);
+    assert(s.str && s.len >= 0);
+    i = idx(i, s.len);
+    j = idx(j, s.len);
+    if(i > j){
+        int t = i; i = j; j = t;
+    }
+    assert(i >= 0 && i <= s.len);
+    //开始寻找
+    if(str.len == 0){
+        return j + 1;
+    }else if(str.len == 1){
+        if(i < j && s.str[j-1] == *str.str){
+            return j; 
+        }
+    }else if(i <= j - str.len && equal(s, j - str.len, str)){
+        return j - str.len + 1;
+    }
+    return 0;
+}
+
+void textFmt(int code, va_list *app, 
+            int put(int c, void *cl), void *cl,
+            unsigned char flags[], int width, int precision){
+    assert(app && flags);
+    Text *s = va_arg(*app, Text *);
+    assert(s && s->str && s->len >= 0);
+    fmtPuts(s->str, s->len, put, cl, flags, width, precison);
 }
